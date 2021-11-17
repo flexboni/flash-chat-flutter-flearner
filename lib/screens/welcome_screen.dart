@@ -24,22 +24,29 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           children: <Widget>[
             Row(
               children: <Widget>[
-                SizedBox(
-                  child: Image.asset('images/logo.png'),
-                  height: 60.0,
+                /**
+                 * hero animation 을 주기 위해서 hero widget 을 활용한다.
+                 * A hero 위젯의 tag와 B hero 위젯의 tag 를 동일한 값으로 설정하면
+                 * 화면 전환 시 쉽게 animation 효과를 줄 수 있다.
+                 */
+                Hero(
+                  tag: 'logo',
+                  child: SizedBox(
+                    child: Image.asset('images/logo.png'),
+                    height: 60.0,
+                  ),
                 ),
                 const Text(
                   'Flash Chat',
                   style: TextStyle(
                     fontSize: 45.0,
                     fontWeight: FontWeight.w900,
+                    color: Colors.black,
                   ),
                 ),
               ],
             ),
-            const SizedBox(
-              height: 48.0,
-            ),
+            const SizedBox(height: 48.0),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: Material(
