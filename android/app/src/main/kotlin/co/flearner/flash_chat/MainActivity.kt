@@ -1,4 +1,4 @@
-package co.flearner.flash_chat
+package co.flexboni.flash_chat
 
 import io.flutter.embedding.android.FlutterActivity
 

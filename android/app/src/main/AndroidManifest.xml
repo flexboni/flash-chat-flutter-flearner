@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="co.flearner.flash_chat">
+    package="co.flexboni.flash_chat">
    <application
         android:label="flash_chat"
         android:icon="@mipmap/ic_launcher">

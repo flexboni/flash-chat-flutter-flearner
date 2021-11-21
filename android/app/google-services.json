@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "980962646551",
+    "project_id": "flash-chat-d1d32",
+    "storage_bucket": "flash-chat-d1d32.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:980962646551:android:c076d4c2076f79a4891a52",
+        "android_client_info": {
+          "package_name": "co.flexboni.flash_chat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "980962646551-k0bn1v837l1j5v5sn5mhtt09m73n2oao.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUpEFWwdMUvkbI8jsyyMpWT8qKITy_p4o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "980962646551-k0bn1v837l1j5v5sn5mhtt09m73n2oao.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
