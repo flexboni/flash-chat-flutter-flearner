@@ -3,6 +3,7 @@ import 'package:flash_chat/constants.dart';
 import 'package:flash_chat/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flash_chat/components/rounded_button.dart';
+import 'package:loading_overlay/loading_overlay.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String id = 'login';
@@ -17,70 +18,82 @@ class _LoginScreenState extends State<LoginScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late String email;
   late String password;
+  bool showSpinner = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Hero(
-              tag: 'logo',
-              child: SizedBox(
-                height: 200.0,
-                child: Image.asset('images/logo.png'),
+      body: LoadingOverlay(
+        isLoading: showSpinner,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Hero(
+                tag: 'logo',
+                child: SizedBox(
+                  height: 200.0,
+                  child: Image.asset('images/logo.png'),
+                ),
               ),
-            ),
-            const SizedBox(
-              height: 48.0,
-            ),
-            TextField(
-              onChanged: (value) {
-                email = value;
-              },
-              keyboardType: TextInputType.emailAddress,
-              textAlign: TextAlign.center,
-              decoration:
-                  kTextFieldDecoration.copyWith(hintText: 'Enter your email'),
-            ),
-            const SizedBox(
-              height: 8.0,
-            ),
-            TextField(
-              onChanged: (value) {
-                password = value;
-              },
-              textAlign: TextAlign.center,
-              obscureText: true,
-              decoration: kTextFieldDecoration.copyWith(
-                  hintText: 'Enter your password'),
-            ),
-            const SizedBox(
-              height: 24.0,
-            ),
-            RoundedButton(
-              title: 'Log In',
-              color: Colors.lightBlueAccent,
-              onPressed: () async {
-                try {
-                  UserCredential? credential =
-                      await _auth.signInWithEmailAndPassword(
-                    email: email,
-                    password: password,
-                  );
-                  if (credential.user?.email != null) {
-                    Navigator.pushNamed(context, ChatScreen.id);
+              const SizedBox(
+                height: 48.0,
+              ),
+              TextField(
+                onChanged: (value) {
+                  email = value;
+                },
+                keyboardType: TextInputType.emailAddress,
+                textAlign: TextAlign.center,
+                decoration:
+                    kTextFieldDecoration.copyWith(hintText: 'Enter your email'),
+              ),
+              const SizedBox(
+                height: 8.0,
+              ),
+              TextField(
+                onChanged: (value) {
+                  password = value;
+                },
+                textAlign: TextAlign.center,
+                obscureText: true,
+                decoration: kTextFieldDecoration.copyWith(
+                    hintText: 'Enter your password'),
+              ),
+              const SizedBox(
+                height: 24.0,
+              ),
+              RoundedButton(
+                title: 'Log In',
+                color: Colors.lightBlueAccent,
+                onPressed: () async {
+                  try {
+                    setState(() {
+                      showSpinner = true;
+                    });
+
+                    UserCredential? credential =
+                        await _auth.signInWithEmailAndPassword(
+                      email: email,
+                      password: password,
+                    );
+                    if (credential.user?.email != null) {
+                      Navigator.pushNamed(context, ChatScreen.id);
+                    }
+
+                    setState(() {
+                      showSpinner = false;
+                    });
+                  } catch (err) {
+                    print(err);
                   }
-                } catch (err) {
-                  print(err);
-                }
-              },
-            ),
-          ],
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
