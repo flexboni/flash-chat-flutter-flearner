@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flash_chat/constants.dart';
+import 'package:flash_chat/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flash_chat/components/rounded_button.dart';
 
@@ -12,12 +14,23 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  late String email;
+  late String password;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 24.0,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -31,8 +44,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
             TextField(
               onChanged: (value) {
-                //Do something with the user input.
+                email = value;
               },
+              keyboardType: TextInputType.emailAddress,
+              textAlign: TextAlign.center,
               decoration:
                   kTextFieldDecoration.copyWith(hintText: 'Enter your email'),
             ),
@@ -41,8 +56,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
             TextField(
               onChanged: (value) {
-                //Do something with the user input.
+                password = value;
               },
+              textAlign: TextAlign.center,
+              obscureText: true,
               decoration: kTextFieldDecoration,
             ),
             const SizedBox(
@@ -51,8 +68,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             RoundedButton(
               title: 'Register',
               color: Colors.blueAccent,
-              onPressed: () {
-                //Implement registration functionality.
+              onPressed: () async {
+                try {
+                  final UserCredential? newUser =
+                      await _auth.createUserWithEmailAndPassword(
+                    email: email,
+                    password: password,
+                  );
+                  if (newUser != null) {
+                    Navigator.pushNamed(context, ChatScreen.id);
+                  }
+                } catch (e) {
+                  print(e);
+                }
               },
             ),
           ],
