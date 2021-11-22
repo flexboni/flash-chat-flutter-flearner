@@ -1,3 +1,4 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flash_chat/screens/login_screen.dart';
 import 'package:flash_chat/screens/registration_screen.dart';
 import 'package:flutter/material.dart';
@@ -22,16 +23,24 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     super.initState();
 
     controller = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 2),
       vsync: this,
     );
     animation = CurvedAnimation(
       parent: controller,
       curve: Curves.decelerate,
     );
+    animation.addStatusListener((AnimationStatus status) {
+      if (status == AnimationStatus.completed) {
+        controller.reverse(from: 1.0);
+      } else if (status == AnimationStatus.dismissed) {
+        controller.forward();
+      }
+    });
+
     animation = ColorTween(
-      begin: Colors.amber,
-      end: Colors.cyan,
+      begin: Colors.blueGrey,
+      end: Colors.white,
     ).animate(controller);
     controller.forward();
     controller.addListener(() {
@@ -64,14 +73,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     height: 60.0,
                   ),
                 ),
-                const Text(
-                  'Flash Chat',
-                  style: TextStyle(
-                    fontSize: 45.0,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black,
+                AnimatedTextKit(animatedTexts: [
+                  TypewriterAnimatedText(
+                    'Flash Chat',
+                    textStyle: const TextStyle(
+                      fontSize: 45.0,
+                      fontWeight: FontWeight.w900,
+                    ),
+                    speed: const Duration(milliseconds: 500),
                   ),
-                ),
+                ])
               ],
             ),
             const SizedBox(height: 48.0),
