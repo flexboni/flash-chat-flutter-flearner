@@ -15,6 +15,8 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   User? loggedInUser;
   String? messageText;
 
@@ -32,21 +34,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // void getMessages() async {
-  //   final result = await _firestore.collection('messages').get();
-  //   for (var message in result.docs) {
-  //     print(message.data());
-  //   }
-  // }
-
-  void messagesStream() async {
-    await for (var snapshot in _firestore.collection('messages').snapshots()) {
-      for (var message in snapshot.docs) {
-        print(message.data());
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,12 +41,12 @@ class _ChatScreenState extends State<ChatScreen> {
         leading: null,
         actions: <Widget>[
           IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () {
-                messagesStream();
-                // _auth.signOut();
-                // Navigator.pop(context);
-              }),
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              _auth.signOut();
+              Navigator.pop(context);
+            },
+          ),
         ],
         title: const Text('⚡️Chat'),
         backgroundColor: Colors.lightBlueAccent,
@@ -69,6 +56,57 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _firestore
+                    .collection('messages')
+                    .orderBy('created_at')
+                    .snapshots(),
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text('Something went WRONG!'),
+                    );
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        backgroundColor: Colors.pink,
+                      ),
+                    );
+                  }
+
+                  final data = snapshot.data;
+                  if (data == null) {
+                    return const Center(
+                      child: Text('Something went WRONG!'),
+                    );
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10.0,
+                      vertical: 20.0,
+                    ),
+                    child: ListView(
+                      controller: _scrollController,
+                      children: data.docs.map((DocumentSnapshot document) {
+                        final data = document.data() as Map<String, dynamic>;
+                        final sender = data['sender'];
+                        if (sender == loggedInUser?.email) {
+                          return MyMessageBubble(
+                              sender: sender, text: data['text']);
+                        }
+                        return OtherMessageBubble(
+                          sender: data['sender'],
+                          text: data['text'],
+                        );
+                      }).toList(),
+                    ),
+                  );
+                },
+              ),
+            ),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
@@ -79,21 +117,31 @@ class _ChatScreenState extends State<ChatScreen> {
                       onChanged: (value) {
                         messageText = value;
                       },
+                      controller: _controller,
+                      textInputAction: TextInputAction.send,
                       decoration: kMessageTextFieldDecoration,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                   TextButton(
                     onPressed: () async {
+                      _controller.clear();
                       String? email = loggedInUser?.email;
                       if (email == null || messageText == null) {
-                        print('what the fuxx');
                         return;
                       }
 
-                      _firestore.collection('messages').add({
-                        'text': email,
-                        'sender': messageText,
+                      await _firestore.collection('messages').add({
+                        'text': messageText,
+                        'sender': email,
+                        'created_at': DateTime.now(),
                       });
+
+                      _scrollController.animateTo(
+                        _scrollController.position.maxScrollExtent,
+                        duration: const Duration(milliseconds: 50),
+                        curve: Curves.easeInOut,
+                      );
                     },
                     child: const Text(
                       'Send',
@@ -105,6 +153,106 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class MyMessageBubble extends StatelessWidget {
+  final String sender;
+  final String text;
+
+  const MyMessageBubble({
+    Key? key,
+    required this.sender,
+    required this.text,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Material(
+            borderRadius: BorderRadius.circular(45.0),
+            elevation: 5.0,
+            color: Colors.cyan,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                vertical: 8.0,
+                horizontal: 20.0,
+              ),
+              child: Text(
+                text,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10.0),
+          Text(
+            sender,
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class OtherMessageBubble extends StatelessWidget {
+  final String sender;
+  final String text;
+
+  const OtherMessageBubble({
+    Key? key,
+    required this.sender,
+    required this.text,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Material(
+            borderRadius: BorderRadius.circular(45.0),
+            elevation: 5.0,
+            color: Colors.deepOrange,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                vertical: 8.0,
+                horizontal: 20.0,
+              ),
+              child: Text(
+                text,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10.0),
+          Text(
+            sender,
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              color: Colors.grey,
+            ),
+          ),
+        ],
       ),
     );
   }
